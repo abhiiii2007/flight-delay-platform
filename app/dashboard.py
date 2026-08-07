@@ -84,7 +84,6 @@ else:
         origin = st.selectbox("Origin", sorted(flights["origin"].unique()))
         destination = st.selectbox("Destination", sorted(flights["destination"].unique()))
         hour = st.slider("Scheduled departure hour", 0, 23, 12)
-        distance = st.number_input("Distance (miles)", 1, 10000, 700)
         month = st.slider("Month", 1, 12, 6)
         day = st.selectbox("Day", DAYS)
         submitted = st.form_submit_button("Estimate risk")
@@ -96,7 +95,6 @@ else:
                     "origin": origin,
                     "destination": destination,
                     "scheduled_departure_hour": hour,
-                    "distance_miles": distance,
                     "month": month,
                     "day_of_week": DAYS.index(day),
                 }

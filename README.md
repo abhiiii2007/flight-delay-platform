@@ -25,6 +25,10 @@ make dashboard
 
 The generated demo data exists only to exercise the pipeline. Portfolio results should use the official BTS file and clearly identify its source and coverage.
 
+The prediction model intentionally excludes actual departure delay, weather-delay attribution,
+and air time because those values are not known when a pre-departure prediction is made. This
+prevents target leakage and keeps the evaluation honest.
+
 ## Real BTS release
 
 Convert a downloaded pipe-delimited BTS `.asc` release:
@@ -35,5 +39,23 @@ Convert a downloaded pipe-delimited BTS `.asc` release:
 make load
 make train
 ```
+
+## Reproduced May 2026 results
+
+The current evaluation uses the official May 2026 BTS on-time release downloaded as
+`ontime.td.202605.asc`.
+
+- Source rows validated and loaded: **677,216**
+- Cancelled flights excluded from model training: **6,361**
+- Flights used for training/evaluation: **670,855**
+- Flights delayed at least 15 minutes: **146,863 (21.69%)**
+- Holdout ROC-AUC: **0.697**
+- Holdout accuracy: **64.53%**
+- Holdout precision: **33.49%**
+- Holdout recall: **63.17%**
+
+The model uses a seeded, stratified 80/20 train/test split. Metrics are baseline results for
+one month and should not be interpreted as proof of future performance. See
+[`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for definitions and limitations.
 
 Run `make check` before every push. Never commit `.env`, credentials, databases, raw datasets, or trained model artifacts.

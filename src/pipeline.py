@@ -16,10 +16,11 @@ REQUIRED_COLUMNS = {
     "destination",
     "scheduled_departure_hour",
     "departure_delay_minutes",
-    "distance_miles",
     "cancelled",
     "weather_severity",
 }
+
+OPTIONAL_NUMERIC_COLUMNS = {"distance_miles", "air_time_minutes"}
 
 
 def transform(flights: pd.DataFrame) -> pd.DataFrame:
@@ -27,7 +28,8 @@ def transform(flights: pd.DataFrame) -> pd.DataFrame:
     if missing:
         raise ValueError(f"Missing required columns: {', '.join(sorted(missing))}")
 
-    cleaned = flights[list(sorted(REQUIRED_COLUMNS))].copy()
+    selected = REQUIRED_COLUMNS | OPTIONAL_NUMERIC_COLUMNS.intersection(flights.columns)
+    cleaned = flights[list(sorted(selected))].copy()
     cleaned["flight_date"] = pd.to_datetime(cleaned["flight_date"], errors="coerce")
     cleaned["carrier"] = cleaned["carrier"].astype(str).str.strip().str.upper()
     cleaned["origin"] = cleaned["origin"].astype(str).str.strip().str.upper()
@@ -37,10 +39,10 @@ def transform(flights: pd.DataFrame) -> pd.DataFrame:
         "flight_number",
         "scheduled_departure_hour",
         "departure_delay_minutes",
-        "distance_miles",
         "cancelled",
         "weather_severity",
     ]
+    numeric.extend(sorted(OPTIONAL_NUMERIC_COLUMNS.intersection(cleaned.columns)))
     for column in numeric:
         cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
 

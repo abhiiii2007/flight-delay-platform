@@ -15,7 +15,7 @@ from sklearn.preprocessing import OneHotEncoder
 from src.config import DATABASE_URL, METRICS_PATH, MODEL_PATH
 
 CATEGORICAL = ["carrier", "origin", "destination"]
-NUMERIC = ["scheduled_departure_hour", "distance_miles", "month", "day_of_week"]
+NUMERIC = ["scheduled_departure_hour", "month", "day_of_week"]
 
 
 def train(flights: pd.DataFrame, model_path: Path = MODEL_PATH) -> dict[str, float]:

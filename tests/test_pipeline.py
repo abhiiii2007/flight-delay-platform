@@ -21,3 +21,11 @@ def test_transform_adds_target_and_removes_duplicates():
 def test_transform_rejects_incomplete_input():
     with pytest.raises(ValueError, match="Missing required columns"):
         transform(pd.DataFrame({"flight_date": ["2026-01-01"]}))
+
+
+def test_transform_accepts_release_without_distance():
+    source = generate(20, 7).drop(columns="distance_miles")
+    source["air_time_minutes"] = 60
+    result = transform(source)
+    assert "air_time_minutes" in result
+    assert "distance_miles" not in result
