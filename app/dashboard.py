@@ -32,15 +32,41 @@ except Exception:
     st.error("No analytics database found. Run `make demo`, `make load`, and `make train` first.")
     st.stop()
 
-total = len(flights)
-delay_rate = 100 * flights["is_delayed"].mean()
-average_delay = flights["departure_delay_minutes"].mean()
+flight_dates = pd.to_datetime(flights["flight_date"])
+st.caption(
+    "Data source: U.S. Bureau of Transportation Statistics · "
+    f"{flight_dates.min():%B %d, %Y}–{flight_dates.max():%B %d, %Y} · "
+    "Local SQLite database"
+)
+
+st.sidebar.header("Filter historical analysis")
+carrier_filter = st.sidebar.selectbox("Carrier", ["All", *sorted(flights["carrier"].unique())])
+origin_filter = st.sidebar.selectbox("Origin", ["All", *sorted(flights["origin"].unique())])
+destination_filter = st.sidebar.selectbox(
+    "Destination", ["All", *sorted(flights["destination"].unique())]
+)
+
+filtered = flights
+if carrier_filter != "All":
+    filtered = filtered[filtered["carrier"] == carrier_filter]
+if origin_filter != "All":
+    filtered = filtered[filtered["origin"] == origin_filter]
+if destination_filter != "All":
+    filtered = filtered[filtered["destination"] == destination_filter]
+
+if filtered.empty:
+    st.warning("No flights match this filter combination. Change one or more filters.")
+    st.stop()
+
+total = len(filtered)
+delay_rate = 100 * filtered["is_delayed"].mean()
+average_delay = filtered["departure_delay_minutes"].mean()
 c1, c2, c3 = st.columns(3)
 c1.metric("Analyzed flights", f"{total:,}")
 c2.metric("Delayed 15+ minutes", f"{delay_rate:.1f}%")
 c3.metric("Average departure delay", f"{average_delay:.1f} min")
 
-carrier = flights.groupby("carrier", as_index=False).agg(
+carrier = filtered.groupby("carrier", as_index=False).agg(
     flights=("is_delayed", "size"), delay_rate=("is_delayed", "mean")
 )
 carrier["delay_rate"] *= 100
@@ -51,7 +77,7 @@ st.plotly_chart(
     use_container_width=True,
 )
 
-hourly = flights.groupby("scheduled_departure_hour", as_index=False)["is_delayed"].mean()
+hourly = filtered.groupby("scheduled_departure_hour", as_index=False)["is_delayed"].mean()
 hourly["delay_rate"] = hourly.pop("is_delayed") * 100
 st.plotly_chart(
     px.line(
@@ -65,7 +91,7 @@ st.plotly_chart(
 )
 
 routes = (
-    flights.assign(route=flights["origin"] + " → " + flights["destination"])
+    filtered.assign(route=filtered["origin"] + " → " + filtered["destination"])
     .groupby("route", as_index=False)
     .agg(flights=("is_delayed", "size"), delay_rate=("is_delayed", "mean"))
     .query("flights >= 10")
