@@ -13,7 +13,8 @@ pandas, stores them in a SQL database, trains a scikit-learn classification mode
 analytics and predictions in a Streamlit dashboard. The local version uses SQLite; the repository
 also contains a secure AWS design using private Amazon RDS PostgreSQL and encrypted Amazon S3.
 
-The current model is a baseline trained on May 2026 data. It achieves a holdout ROC-AUC of 0.697.
+The current model is a baseline trained on May 2026 data. It achieves a chronological holdout
+ROC-AUC of 0.678.
 It intentionally uses only fields available before departure to avoid target leakage.
 
 ## 2. What problem are we solving?
@@ -73,10 +74,10 @@ pipe-delimited release.
 | Flights delayed at least 15 minutes | 146,863 |
 | Overall delayed share | 21.69% |
 | Average departure delay | 12.41 minutes |
-| Holdout accuracy | 64.53% |
-| Holdout precision | 33.49% |
-| Holdout recall | 63.17% |
-| Holdout ROC-AUC | 0.697 |
+| Chronological holdout accuracy | 62.37% |
+| Chronological holdout precision | 30.71% |
+| Chronological holdout recall | 62.35% |
+| Chronological holdout ROC-AUC | 0.678 |
 
 The raw file, generated database, and trained model are not committed to GitHub. They are large or
 generated artifacts and can be reproduced from the source file and versioned code.
@@ -186,8 +187,9 @@ prediction apply exactly the same categorical encoding.
 
 ### Step 6: evaluate
 
-The current evaluation uses a seeded, stratified 80/20 train/test split. Stratification preserves
-approximately the same delayed-flight percentage in both sets. The seed makes the result
+The current evaluation is chronological. Flights from May 1–24 train the model, and flights from
+May 25–31 form the untouched test set. This better represents learning from the past to rank later
+flights and ensures no later test date appears in training. A fixed model seed keeps training
 reproducible.
 
 - **Accuracy** answers: what share of all classifications was correct?
@@ -394,8 +396,8 @@ rather than the runtime list.
 These are not failures to hide. They are the reasons for the next iterations:
 
 1. **One month of data:** May alone cannot prove seasonal generalization.
-2. **Random holdout split:** It is reproducible, but a chronological evaluation better simulates
-   predicting future flights.
+2. **Short chronological holdout:** The split respects time, but both training and testing still
+   come from one month and cannot measure seasonal generalization.
 3. **Whole-file memory use:** pandas reads the complete file. Several years will require chunking or
    a distributed/query-engine approach.
 4. **Replace-style database load:** simple locally, but unsuitable for continuous updates.
@@ -462,14 +464,14 @@ No further feature work should begin until the owner can explain Sections 1–7 
 
 It provides a strong nonlinear baseline for mixed categorical and numeric features, handles
 interactions such as route and departure time, and requires less scaling/feature transformation than
-many models. I constrained depth and leaf size to reduce overfitting. I still need to compare it
-against logistic regression and evaluate chronologically before calling it the best model.
+many models. I constrained depth and leaf size to reduce overfitting and evaluate on later dates.
+I still need to compare it against logistic regression before calling it the best model.
 
-### “Why is accuracy only 64.5% when predicting no delay would be about 78% accurate?”
+### “Why is accuracy only 62.4% when predicting no delay would be about 79% accurate?”
 
 The target is imbalanced. The model uses balanced class weights so it detects more actual delays
-instead of optimizing overall accuracy by nearly always predicting no delay. Its recall is 63.2%
-and ROC-AUC is 0.697. The right operating threshold depends on whether missed delays or false alarms
+instead of optimizing overall accuracy by nearly always predicting no delay. Its recall is 62.4%
+and ROC-AUC is 0.678 on later May dates. The right operating threshold depends on whether missed delays or false alarms
 are more costly.
 
 ### “Why not train on weather delay or air time?”
@@ -519,8 +521,8 @@ possibly columnar files plus a query engine for multi-year analytical workloads.
 
 ### “What would you improve first?”
 
-I would add several months and replace the random holdout with a chronological test. That validates
-whether the model generalizes to future flights before investing heavily in UI or cloud scale.
+I would add several earlier months and hold out an entire later month. The current chronological
+week tests near-term ranking, but an out-of-month test better measures seasonal generalization.
 
 ## 15. Commands and what they actually do
 

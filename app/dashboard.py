@@ -27,7 +27,7 @@ def read_flights() -> pd.DataFrame:
     return pd.read_sql("SELECT * FROM flights WHERE cancelled = 0", create_engine(DATABASE_URL))
 
 
-def read_model_metrics() -> dict[str, float]:
+def read_model_metrics() -> dict[str, float | int | str]:
     return json.loads(METRICS_PATH.read_text())
 
 
@@ -114,8 +114,10 @@ if METRICS_PATH.exists():
     m3.metric("Precision", f"{metrics['precision']:.1%}")
     m4.metric("Recall", f"{metrics['recall']:.1%}")
     st.caption(
-        "Baseline evaluation on a seeded, stratified 80/20 split of May 2026 flights. "
-        "These metrics do not establish performance on future months."
+        f"Chronological evaluation: trained on {metrics['train_start']} through "
+        f"{metrics['train_end']}; tested on {metrics['test_start']} through "
+        f"{metrics['test_end']}. Results from one month do not establish performance "
+        "across seasons."
     )
 else:
     st.info("Train the model with `make train` to generate evaluation metrics.")

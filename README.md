@@ -49,13 +49,13 @@ The current evaluation uses the official May 2026 BTS on-time release downloaded
 - Cancelled flights excluded from model training: **6,361**
 - Flights used for training/evaluation: **670,855**
 - Flights delayed at least 15 minutes: **146,863 (21.69%)**
-- Holdout ROC-AUC: **0.697**
-- Holdout accuracy: **64.53%**
-- Holdout precision: **33.49%**
-- Holdout recall: **63.17%**
+- Chronological holdout ROC-AUC: **0.678**
+- Chronological holdout accuracy: **62.37%**
+- Chronological holdout precision: **30.71%**
+- Chronological holdout recall: **62.35%**
 
-The model uses a seeded, stratified 80/20 train/test split. Metrics are baseline results for
-one month and should not be interpreted as proof of future performance. See
+The model trains on May 1–24 and tests on May 25–31 so later dates never enter training. Metrics
+are baseline results for one month and should not be interpreted as proof of seasonal performance. See
 [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for definitions and limitations.
 
 Run `make check` before every push. Never commit `.env`, credentials, databases, raw datasets, or trained model artifacts.

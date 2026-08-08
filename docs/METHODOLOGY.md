@@ -22,19 +22,20 @@ after the flight and would create target leakage.
 
 ## Evaluation
 
-The classifier is a class-balanced random forest with a fixed random seed. Evaluation uses a
-stratified 80/20 holdout split so the delayed-flight rate is represented in both partitions.
+The classifier is a class-balanced random forest with a fixed random seed. Evaluation is
+chronological: May 1–24 (515,821 flights) is used for training and May 25–31 (155,034 flights) is
+held out for testing. No later test date appears in the training set.
 
 | Metric | Result | Meaning |
 | --- | ---: | --- |
-| ROC-AUC | 0.697 | Ranking quality across classification thresholds |
-| Accuracy | 64.53% | Share of holdout predictions classified correctly |
-| Precision | 33.49% | Share of predicted delays that were delayed |
-| Recall | 63.17% | Share of actual delays detected by the model |
+| ROC-AUC | 0.678 | Ranking quality across classification thresholds |
+| Accuracy | 62.37% | Share of holdout predictions classified correctly |
+| Precision | 30.71% | Share of predicted delays that were delayed |
+| Recall | 62.35% | Share of actual delays detected by the model |
 
 Because only one month is represented, these results are a baseline rather than evidence of
 performance across seasons. A stronger evaluation would train on several earlier months and test
-on a later month, which is the next modeling milestone.
+on a later month, which remains the next modeling milestone.
 
 ## Reproducibility
 
