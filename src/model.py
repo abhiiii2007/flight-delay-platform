@@ -18,7 +18,11 @@ CATEGORICAL = ["carrier", "origin", "destination"]
 NUMERIC = ["scheduled_departure_hour", "month", "day_of_week"]
 
 
-def train(flights: pd.DataFrame, model_path: Path = MODEL_PATH) -> dict[str, float]:
+def train(
+    flights: pd.DataFrame,
+    model_path: Path = MODEL_PATH,
+    metrics_path: Path = METRICS_PATH,
+) -> dict[str, float]:
     features = flights[CATEGORICAL + NUMERIC]
     target = flights["is_delayed"]
     x_train, x_test, y_train, y_test = train_test_split(
@@ -49,8 +53,9 @@ def train(flights: pd.DataFrame, model_path: Path = MODEL_PATH) -> dict[str, flo
         "rows": int(len(flights)),
     }
     model_path.parent.mkdir(parents=True, exist_ok=True)
+    metrics_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, model_path)
-    METRICS_PATH.write_text(json.dumps(metrics, indent=2))
+    metrics_path.write_text(json.dumps(metrics, indent=2))
     return metrics
 
 

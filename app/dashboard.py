@@ -1,5 +1,6 @@
 """Interactive FlightPulse analytics and prediction dashboard."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from sqlalchemy import create_engine
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.config import DATABASE_URL, MODEL_PATH  # noqa: E402
+from src.config import DATABASE_URL, METRICS_PATH, MODEL_PATH  # noqa: E402
 
 st.set_page_config(page_title="FlightPulse", page_icon="✈️", layout="wide")
 st.title("FlightPulse")
@@ -24,6 +25,10 @@ DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sun
 @st.cache_data
 def read_flights() -> pd.DataFrame:
     return pd.read_sql("SELECT * FROM flights WHERE cancelled = 0", create_engine(DATABASE_URL))
+
+
+def read_model_metrics() -> dict[str, float]:
+    return json.loads(METRICS_PATH.read_text())
 
 
 try:
@@ -99,6 +104,21 @@ routes = (
 )
 routes["delay_rate"] *= 100
 st.dataframe(routes, use_container_width=True, hide_index=True)
+
+st.header("Model performance")
+if METRICS_PATH.exists():
+    metrics = read_model_metrics()
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
+    m2.metric("Accuracy", f"{metrics['accuracy']:.1%}")
+    m3.metric("Precision", f"{metrics['precision']:.1%}")
+    m4.metric("Recall", f"{metrics['recall']:.1%}")
+    st.caption(
+        "Baseline evaluation on a seeded, stratified 80/20 split of May 2026 flights. "
+        "These metrics do not establish performance on future months."
+    )
+else:
+    st.info("Train the model with `make train` to generate evaluation metrics.")
 
 st.header("Predict delay risk")
 if not MODEL_PATH.exists():
