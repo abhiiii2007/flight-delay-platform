@@ -52,22 +52,23 @@ Pass several releases before `--output` to build a combined chronological datase
 
 The combined importer sorts records by date and removes exact duplicate records.
 
-## Reproduced May 2026 results
+## Reproduced April–May 2026 results
 
-The current evaluation uses the official May 2026 BTS on-time release downloaded as
-`ontime.td.202605.asc`.
+The current evaluation uses the official April and May 2026 releases from the
+[BTS Airline Service Quality Performance 234 archive](https://www.bts.gov/browse-statistical-products-and-data/bts-publications/airline-service-quality-performance-234-time).
 
-- Source rows validated and loaded: **677,216**
-- Cancelled flights excluded from model training: **6,361**
-- Flights used for training/evaluation: **670,855**
-- Flights delayed at least 15 minutes: **146,863 (21.69%)**
-- Chronological holdout ROC-AUC: **0.678**
-- Chronological holdout accuracy: **62.37%**
-- Chronological holdout precision: **30.71%**
-- Chronological holdout recall: **62.35%**
+- Source rows validated and loaded: **1,337,905**
+- Cancelled flights excluded from model training: **12,253**
+- Non-cancelled flights available for training/evaluation: **1,325,652**
+- Non-cancelled flights delayed at least 15 minutes: **276,089 (20.83%)**
+- Out-of-month ROC-AUC: **0.688**
+- Out-of-month accuracy: **64.69%**
+- Out-of-month precision: **33.24%**
+- Out-of-month recall: **61.06%**
 
-The model trains on May 1–24 and tests on May 25–31 so later dates never enter training. Metrics
-are baseline results for one month and should not be interpreted as proof of seasonal performance. See
+The model trains on all non-cancelled April flights and tests on every non-cancelled May flight, so
+the test month never enters training. These two-month results remain a baseline and should not be
+interpreted as proof of seasonal performance. See
 [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for definitions and limitations.
 
 Run `make check` before every push. Never commit `.env`, credentials, databases, raw datasets, or trained model artifacts.

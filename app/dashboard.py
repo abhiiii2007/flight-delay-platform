@@ -22,8 +22,16 @@ st.caption("Explore departure-delay patterns and estimate the risk of a 15+ minu
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-@st.cache_data
-def read_flights() -> pd.DataFrame:
+def database_cache_version() -> int | None:
+    if not DATABASE_URL.startswith("sqlite:///"):
+        return None
+    database_path = Path(DATABASE_URL.removeprefix("sqlite:///"))
+    return database_path.stat().st_mtime_ns if database_path.exists() else None
+
+
+@st.cache_data(ttl=300)
+def read_flights(database_version: int | None) -> pd.DataFrame:
+    del database_version
     return pd.read_sql("SELECT * FROM flights WHERE cancelled = 0", create_engine(DATABASE_URL))
 
 
@@ -32,7 +40,7 @@ def read_model_metrics() -> dict[str, float | int | str]:
 
 
 try:
-    flights = read_flights()
+    flights = read_flights(database_cache_version())
 except Exception:
     st.error("No analytics database found. Run `make demo`, `make load`, and `make train` first.")
     st.stop()
@@ -116,8 +124,8 @@ if METRICS_PATH.exists():
     st.caption(
         f"Chronological evaluation: trained on {metrics['train_start']} through "
         f"{metrics['train_end']}; tested on {metrics['test_start']} through "
-        f"{metrics['test_end']}. Results from one month do not establish performance "
-        "across seasons."
+        f"{metrics['test_end']}. Results from two adjacent months do not establish "
+        "performance across seasons."
     )
 else:
     st.info("Train the model with `make train` to generate evaluation metrics.")

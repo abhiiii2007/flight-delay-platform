@@ -26,10 +26,17 @@ def chronological_split(
     if len(unique_dates) < 2:
         raise ValueError("Chronological evaluation requires at least two flight dates")
 
-    split_index = min(max(int(len(unique_dates) * train_fraction), 1), len(unique_dates) - 1)
-    test_start = unique_dates[split_index]
-    train_set = dated[dated["flight_date"] < test_start].copy()
-    test_set = dated[dated["flight_date"] >= test_start].copy()
+    months = dated["flight_date"].dt.to_period("M").sort_values().unique()
+    if len(months) > 1:
+        test_month = months[-1]
+        test_mask = dated["flight_date"].dt.to_period("M") == test_month
+        train_set = dated[~test_mask].copy()
+        test_set = dated[test_mask].copy()
+    else:
+        split_index = min(max(int(len(unique_dates) * train_fraction), 1), len(unique_dates) - 1)
+        test_start = unique_dates[split_index]
+        train_set = dated[dated["flight_date"] < test_start].copy()
+        test_set = dated[dated["flight_date"] >= test_start].copy()
     return train_set, test_set
 
 
@@ -69,7 +76,11 @@ def train(
         "rows": int(len(flights)),
         "train_rows": int(len(train_set)),
         "test_rows": int(len(test_set)),
-        "split_strategy": "chronological_by_flight_date",
+        "split_strategy": (
+            "latest_month_holdout"
+            if train_set["flight_date"].max().month != test_set["flight_date"].min().month
+            else "chronological_by_flight_date"
+        ),
         "train_start": train_set["flight_date"].min().strftime("%Y-%m-%d"),
         "train_end": train_set["flight_date"].max().strftime("%Y-%m-%d"),
         "test_start": test_set["flight_date"].min().strftime("%Y-%m-%d"),

@@ -13,8 +13,8 @@ pandas, stores them in a SQL database, trains a scikit-learn classification mode
 analytics and predictions in a Streamlit dashboard. The local version uses SQLite; the repository
 also contains a secure AWS design using private Amazon RDS PostgreSQL and encrypted Amazon S3.
 
-The current model is a baseline trained on May 2026 data. It achieves a chronological holdout
-ROC-AUC of 0.678.
+The current model is a baseline trained on April 2026 and tested on May 2026. It achieves an
+out-of-month ROC-AUC of 0.688.
 It intentionally uses only fields available before departure to avoid target leakage.
 
 ## 2. What problem are we solving?
@@ -39,9 +39,9 @@ independent project.
 ### Implemented and verified
 
 - A real May 2026 BTS `.asc` file was validated and imported.
-- All 677,216 source records were loaded into a local SQLite analytics database.
-- The 6,361 cancelled flights were excluded from model training.
-- A random-forest model was trained and evaluated on 670,855 flights.
+- All 1,337,905 April–May source records were loaded into a local SQLite analytics database.
+- The 12,253 cancelled flights were excluded from model training.
+- A random-forest model was trained on 654,797 April flights and tested on 670,855 May flights.
 - SQL queries compute carrier, route, hourly, and overall delay statistics.
 - A local Streamlit dashboard reads the database and model.
 - Unit tests cover the importers, transformation pipeline, and model.
@@ -68,16 +68,16 @@ pipe-delimited release.
 
 | Measurement | Result |
 | --- | ---: |
-| Source/database records | 677,216 |
-| Cancelled records | 6,361 |
-| Non-cancelled model records | 670,855 |
-| Flights delayed at least 15 minutes | 146,863 |
-| Overall delayed share | 21.69% |
-| Average departure delay | 12.41 minutes |
-| Chronological holdout accuracy | 62.37% |
-| Chronological holdout precision | 30.71% |
-| Chronological holdout recall | 62.35% |
-| Chronological holdout ROC-AUC | 0.678 |
+| Source/database records | 1,337,905 |
+| Cancelled records | 12,253 |
+| Non-cancelled model records | 1,325,652 |
+| Non-cancelled flights delayed at least 15 minutes | 276,089 |
+| Non-cancelled delayed share | 20.83% |
+| Average non-cancelled departure delay | 11.53 minutes |
+| Out-of-month accuracy | 64.69% |
+| Out-of-month precision | 33.24% |
+| Out-of-month recall | 61.06% |
+| Out-of-month ROC-AUC | 0.688 |
 
 The raw file, generated database, and trained model are not committed to GitHub. They are large or
 generated artifacts and can be reproduced from the source file and versioned code.
@@ -121,8 +121,8 @@ database.
 
 ### Step 1: acquire the source
 
-The BTS source is downloaded manually today. It contains 677,216 rows and 71 pipe-separated fields.
-The original source is retained outside Git.
+The BTS sources are downloaded manually today. April and May contain 1,337,905 total rows with 71
+pipe-separated fields per record. The original sources are retained outside Git.
 
 ### Step 2: import the source format
 
@@ -187,9 +187,9 @@ prediction apply exactly the same categorical encoding.
 
 ### Step 6: evaluate
 
-The current evaluation is chronological. Flights from May 1–24 train the model, and flights from
-May 25–31 form the untouched test set. This better represents learning from the past to rank later
-flights and ensures no later test date appears in training. A fixed model seed keeps training
+The current evaluation is out-of-month. All eligible April flights train the model, and all eligible
+May flights form the untouched test set. This represents learning from an earlier month to rank
+later flights and ensures no May record appears in training. A fixed model seed keeps training
 reproducible.
 
 - **Accuracy** answers: what share of all classifications was correct?
@@ -395,9 +395,9 @@ rather than the runtime list.
 
 These are not failures to hide. They are the reasons for the next iterations:
 
-1. **One month of data:** May alone cannot prove seasonal generalization.
-2. **Short chronological holdout:** The split respects time, but both training and testing still
-   come from one month and cannot measure seasonal generalization.
+1. **Two months of data:** April and May alone cannot prove seasonal generalization.
+2. **Adjacent-month holdout:** The split respects time, but neighboring spring months cannot measure
+   performance across seasons or major schedule changes.
 3. **Whole-file memory use:** pandas reads the complete file. Several years will require chunking or
    a distributed/query-engine approach.
 4. **Replace-style database load:** simple locally, but unsuitable for continuous updates.
@@ -467,11 +467,11 @@ interactions such as route and departure time, and requires less scaling/feature
 many models. I constrained depth and leaf size to reduce overfitting and evaluate on later dates.
 I still need to compare it against logistic regression before calling it the best model.
 
-### “Why is accuracy only 62.4% when predicting no delay would be about 79% accurate?”
+### “Why is accuracy only 64.7% when predicting no delay would be about 78% accurate?”
 
 The target is imbalanced. The model uses balanced class weights so it detects more actual delays
-instead of optimizing overall accuracy by nearly always predicting no delay. Its recall is 62.4%
-and ROC-AUC is 0.678 on later May dates. The right operating threshold depends on whether missed delays or false alarms
+instead of optimizing overall accuracy by nearly always predicting no delay. Its recall is 61.1%
+and ROC-AUC is 0.688 on the held-out May month. The right operating threshold depends on whether missed delays or false alarms
 are more costly.
 
 ### “Why not train on weather delay or air time?”
@@ -551,7 +551,7 @@ You do not need to recite source code. You should be able to:
 6. Interpret accuracy, precision, recall, and ROC-AUC in this project's context.
 7. Explain why SQLite is local and PostgreSQL/RDS is planned for deployment.
 8. Name current security controls without claiming the system is “unhackable.”
-9. Admit the single-month/random-split limitations and describe the next evaluation.
+9. Admit the two-month/adjacent-month limitations and describe the next evaluation.
 10. Clearly separate completed work from planned AWS work.
 
 Once these points feel natural, the project is yours—not merely code in your repository.

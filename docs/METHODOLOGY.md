@@ -2,13 +2,13 @@
 
 ## Dataset
 
-FlightPulse currently analyzes the official BTS May 2026 on-time performance release. The
-pipe-delimited source has 677,216 records and 71 fields. The importer validates the field count,
-enforces a 1 GB input-size limit, selects an explicit field allowlist, normalizes dates and airport
-codes, and writes a canonical CSV for the pipeline.
+FlightPulse currently analyzes the official BTS April and May 2026 on-time performance releases.
+Together, the pipe-delimited sources have 1,337,905 records and 71 fields per record. The importer
+validates the field count, enforces a 1 GB per-file input-size limit, selects an explicit field
+allowlist, normalizes dates and airport codes, and writes a canonical CSV for the pipeline.
 
-The database retains all 677,216 records for analytics. The model excludes 6,361 cancelled
-flights because they do not have an observed departure-delay outcome, leaving 670,855 rows.
+The database retains all 1,337,905 records for analytics. The model excludes 12,253 cancelled
+flights because they do not have an observed departure-delay outcome, leaving 1,325,652 rows.
 
 ## Prediction target and features
 
@@ -23,19 +23,19 @@ after the flight and would create target leakage.
 ## Evaluation
 
 The classifier is a class-balanced random forest with a fixed random seed. Evaluation is
-chronological: May 1–24 (515,821 flights) is used for training and May 25–31 (155,034 flights) is
-held out for testing. No later test date appears in the training set.
+out-of-month: April (654,797 non-cancelled flights) is used for training and May (670,855 flights)
+is held out for testing. No May record appears in the training set.
 
 | Metric | Result | Meaning |
 | --- | ---: | --- |
-| ROC-AUC | 0.678 | Ranking quality across classification thresholds |
-| Accuracy | 62.37% | Share of holdout predictions classified correctly |
-| Precision | 30.71% | Share of predicted delays that were delayed |
-| Recall | 62.35% | Share of actual delays detected by the model |
+| ROC-AUC | 0.688 | Ranking quality across classification thresholds |
+| Accuracy | 64.69% | Share of holdout predictions classified correctly |
+| Precision | 33.24% | Share of predicted delays that were delayed |
+| Recall | 61.06% | Share of actual delays detected by the model |
 
-Because only one month is represented, these results are a baseline rather than evidence of
-performance across seasons. A stronger evaluation would train on several earlier months and test
-on a later month, which remains the next modeling milestone.
+Because only two adjacent months are represented, these results are a baseline rather than
+evidence of performance across seasons. A stronger evaluation would train on several earlier
+months and test on a later month from another season.
 
 ## Reproducibility
 
