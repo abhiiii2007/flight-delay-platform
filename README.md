@@ -40,6 +40,18 @@ make load
 make train
 ```
 
+Pass several releases before `--output` to build a combined chronological dataset:
+
+```bash
+.venv/bin/python -m src.import_bts_asc \
+  /path/to/ontime.td.202604.asc \
+  /path/to/ontime.td.202605.asc \
+  /path/to/ontime.td.202606.asc \
+  --output data/raw/flights.csv
+```
+
+The combined importer sorts records by date and removes exact duplicate records.
+
 ## Reproduced May 2026 results
 
 The current evaluation uses the official May 2026 BTS on-time release downloaded as

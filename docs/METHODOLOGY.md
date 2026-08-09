@@ -42,3 +42,7 @@ on a later month, which remains the next modeling milestone.
 The raw source, generated database, and trained model are intentionally excluded from Git because
 they are large generated artifacts. The importer, pipeline, pinned dependencies, SQL, and tests are
 versioned. Running the documented commands against the same BTS release reproduces the results.
+
+The `.asc` importer accepts one or more monthly releases. When several files are provided, it
+normalizes each release to the same schema, concatenates them, removes exact duplicate records, and
+sorts the combined dataset chronologically before the regular pipeline runs.

@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+from collections.abc import Sequence
 from pathlib import Path
 
 import pandas as pd
@@ -85,13 +86,28 @@ def convert(path: Path, output: Path, limit: int | None = None) -> pd.DataFrame:
     return result
 
 
+def convert_many(paths: Sequence[Path], output: Path, limit: int | None = None) -> pd.DataFrame:
+    if not paths:
+        raise ValueError("At least one BTS release is required")
+    releases = [normalize(read_release(path, limit)) for path in paths]
+    result = (
+        pd.concat(releases, ignore_index=True)
+        .drop_duplicates()
+        .sort_values(["flight_date", "carrier", "flight_number", "origin", "destination"])
+        .reset_index(drop=True)
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    result.to_csv(output, index=False)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("source", type=Path)
+    parser.add_argument("source", nargs="+", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--limit", type=int)
     args = parser.parse_args()
-    convert(args.source, args.output, args.limit)
+    convert_many(args.source, args.output, args.limit)
 
 
 if __name__ == "__main__":
