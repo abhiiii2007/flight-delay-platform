@@ -62,13 +62,15 @@ The current evaluation uses the official April and May 2026 releases from the
 - Non-cancelled flights available for training/evaluation: **1,325,652**
 - Non-cancelled flights delayed at least 15 minutes: **276,089 (20.83%)**
 - Out-of-month ROC-AUC: **0.688**
+- Logistic-regression baseline ROC-AUC: **0.681**
 - Out-of-month accuracy: **64.69%**
 - Out-of-month precision: **33.24%**
 - Out-of-month recall: **61.06%**
 
 The model trains on all non-cancelled April flights and tests on every non-cancelled May flight, so
 the test month never enters training. These two-month results remain a baseline and should not be
-interpreted as proof of seasonal performance. See
+interpreted as proof of seasonal performance. Random forest is retained because it slightly
+outperforms logistic regression on the identical May holdout. See
 [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for definitions and limitations.
 
 Run `make check` before every push. Never commit `.env`, credentials, databases, raw datasets, or trained model artifacts.

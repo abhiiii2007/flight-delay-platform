@@ -13,6 +13,9 @@ def test_train_returns_valid_metrics(tmp_path):
     assert metrics_path.exists()
     assert metrics["split_strategy"] == "latest_month_holdout"
     assert metrics["train_end"] < metrics["test_start"]
+    assert metrics["selected_model"] in {"random_forest", "logistic_regression"}
+    assert 0 <= metrics["random_forest_roc_auc"] <= 1
+    assert 0 <= metrics["logistic_regression_roc_auc"] <= 1
 
 
 def test_chronological_split_keeps_future_dates_out_of_training():

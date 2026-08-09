@@ -78,6 +78,7 @@ pipe-delimited release.
 | Out-of-month precision | 33.24% |
 | Out-of-month recall | 61.06% |
 | Out-of-month ROC-AUC | 0.688 |
+| Logistic-regression baseline ROC-AUC | 0.681 |
 
 The raw file, generated database, and trained model are not committed to GitHub. They are large or
 generated artifacts and can be reproduced from the source file and versioned code.
@@ -178,9 +179,12 @@ The current features are:
 Carrier and airport codes are categorical, so `OneHotEncoder` converts them to numeric indicator
 columns. Unknown categories are ignored so a new carrier or airport does not crash prediction.
 
-The classifier is a random forest with 180 trees, maximum depth 12, minimum leaf size 4, balanced
-class weights, and a fixed random seed. The depth and leaf constraints reduce overfitting. Balanced
-class weights matter because only about 21.9% of flights are delayed, so the classes are uneven.
+The primary classifier is a random forest with 180 trees, maximum depth 12, minimum leaf size 4,
+balanced class weights, and a fixed random seed. The depth and leaf constraints reduce overfitting.
+Balanced class weights matter because only about 20.8% of flights are delayed, so the classes are
+uneven. A class-balanced logistic regression is trained on the same April records as a simpler
+baseline. Random forest is saved because its May ROC-AUC is 0.688 versus 0.681 for logistic
+regression.
 
 The model and preprocessing are wrapped in one scikit-learn `Pipeline`. This ensures training and
 prediction apply exactly the same categorical encoding.
@@ -406,8 +410,8 @@ These are not failures to hide. They are the reasons for the next iterations:
 6. **No automatic ingestion:** the BTS file is manually downloaded and processed.
 7. **No deployed application:** Terraform describes storage/database infrastructure, not yet the
    compute and network path for the dashboard.
-8. **Basic model:** no baseline comparison, calibration plot, feature importance explanation, or
-   hyperparameter search yet.
+8. **Basic model analysis:** a logistic-regression baseline is now included, but there is no
+   calibration plot, feature importance explanation, or hyperparameter search yet.
 9. **No authentication:** acceptable for a public read-only portfolio dashboard if no private data
    or administrative actions are exposed, but not for a private operational tool.
 10. **Schema management:** SQL schema is documented, but the runtime load currently relies on
@@ -429,7 +433,7 @@ No further feature work should begin until the owner can explain Sections 1–7 
 - Add multiple months of official data.
 - Give each record a stable key and load incrementally.
 - Train on earlier months and test on a later month.
-- Compare random forest against a simple logistic-regression baseline.
+- Explain why random forest narrowly beat the logistic-regression baseline on the May holdout.
 - Add confusion matrix, probability calibration, and feature/segment analysis.
 - Decide on a threshold using a stated user goal rather than defaulting blindly to 0.5.
 
@@ -465,7 +469,9 @@ No further feature work should begin until the owner can explain Sections 1–7 
 It provides a strong nonlinear baseline for mixed categorical and numeric features, handles
 interactions such as route and departure time, and requires less scaling/feature transformation than
 many models. I constrained depth and leaf size to reduce overfitting and evaluate on later dates.
-I still need to compare it against logistic regression before calling it the best model.
+I compared it with class-balanced logistic regression using the same April training and May test
+records. Random forest performed slightly better: 0.688 versus 0.681 ROC-AUC. That supports the
+choice for now without proving it will remain best on other seasons.
 
 ### “Why is accuracy only 64.7% when predicting no delay would be about 78% accurate?”
 

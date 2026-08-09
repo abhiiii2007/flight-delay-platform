@@ -122,6 +122,11 @@ if METRICS_PATH.exists():
     m3.metric("Precision", f"{metrics['precision']:.1%}")
     m4.metric("Recall", f"{metrics['recall']:.1%}")
     st.caption(
+        f"Selected model: {str(metrics['selected_model']).replace('_', ' ').title()} · "
+        f"Random forest ROC-AUC: {metrics['random_forest_roc_auc']:.3f} · "
+        f"Logistic regression ROC-AUC: {metrics['logistic_regression_roc_auc']:.3f}"
+    )
+    st.caption(
         f"Chronological evaluation: trained on {metrics['train_start']} through "
         f"{metrics['train_end']}; tested on {metrics['test_start']} through "
         f"{metrics['test_end']}. Results from two adjacent months do not establish "

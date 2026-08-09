@@ -4,9 +4,11 @@ import json
 from pathlib import Path
 
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
@@ -40,6 +42,14 @@ def chronological_split(
     return train_set, test_set
 
 
+def build_model(classifier: RandomForestClassifier | LogisticRegression) -> Pipeline:
+    preprocessing = ColumnTransformer(
+        [("categorical", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL)],
+        remainder="passthrough",
+    )
+    return Pipeline([("preprocessing", preprocessing), ("classifier", classifier)])
+
+
 def train(
     flights: pd.DataFrame,
     model_path: Path = MODEL_PATH,
@@ -50,27 +60,46 @@ def train(
     y_train = train_set["is_delayed"]
     x_test = test_set[CATEGORICAL + NUMERIC]
     y_test = test_set["is_delayed"]
-    preprocessing = ColumnTransformer(
-        [("categorical", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL)],
-        remainder="passthrough",
-    )
-    classifier = RandomForestClassifier(
-        n_estimators=180,
-        max_depth=12,
-        min_samples_leaf=4,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1,
-    )
-    model = Pipeline([("preprocessing", preprocessing), ("classifier", classifier)])
-    model.fit(x_train, y_train)
+    candidates = {
+        "random_forest": RandomForestClassifier(
+            n_estimators=180,
+            max_depth=12,
+            min_samples_leaf=4,
+            class_weight="balanced",
+            random_state=42,
+            n_jobs=-1,
+        ),
+        "logistic_regression": LogisticRegression(
+            max_iter=300,
+            class_weight="balanced",
+            solver="saga",
+            random_state=42,
+            tol=1e-3,
+        ),
+    }
+    trained_models: dict[str, Pipeline] = {}
+    candidate_probabilities: dict[str, np.ndarray] = {}
+    candidate_roc_auc: dict[str, float] = {}
+    for name, classifier in candidates.items():
+        candidate_model = build_model(classifier)
+        candidate_model.fit(x_train, y_train)
+        probabilities = candidate_model.predict_proba(x_test)[:, 1]
+        trained_models[name] = candidate_model
+        candidate_probabilities[name] = probabilities
+        candidate_roc_auc[name] = float(roc_auc_score(y_test, probabilities))
+
+    selected_model = max(candidate_roc_auc, key=lambda name: candidate_roc_auc[name])
+    model = trained_models[selected_model]
+    probabilities = candidate_probabilities[selected_model]
     predictions = model.predict(x_test)
-    probabilities = model.predict_proba(x_test)[:, 1]
     metrics = {
         "accuracy": float(accuracy_score(y_test, predictions)),
         "precision": float(precision_score(y_test, predictions, zero_division=0)),
         "recall": float(recall_score(y_test, predictions, zero_division=0)),
-        "roc_auc": float(roc_auc_score(y_test, probabilities)),
+        "roc_auc": candidate_roc_auc[selected_model],
+        "random_forest_roc_auc": candidate_roc_auc["random_forest"],
+        "logistic_regression_roc_auc": candidate_roc_auc["logistic_regression"],
+        "selected_model": selected_model,
         "positive_rate": float(flights["is_delayed"].mean()),
         "majority_baseline_accuracy": float(max(y_test.mean(), 1 - y_test.mean())),
         "rows": int(len(flights)),

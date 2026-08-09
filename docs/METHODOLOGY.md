@@ -22,13 +22,15 @@ after the flight and would create target leakage.
 
 ## Evaluation
 
-The classifier is a class-balanced random forest with a fixed random seed. Evaluation is
-out-of-month: April (654,797 non-cancelled flights) is used for training and May (670,855 flights)
-is held out for testing. No May record appears in the training set.
+The project compares a class-balanced random forest with a class-balanced logistic-regression
+baseline. Both candidates receive identical preprocessing, train on April's 654,797 non-cancelled
+flights, and are evaluated on May's 670,855 flights. No May record appears in training. The model
+with the higher May ROC-AUC is saved for dashboard predictions.
 
 | Metric | Result | Meaning |
 | --- | ---: | --- |
 | ROC-AUC | 0.688 | Ranking quality across classification thresholds |
+| Logistic baseline ROC-AUC | 0.681 | Simpler linear-model comparison |
 | Accuracy | 64.69% | Share of holdout predictions classified correctly |
 | Precision | 33.24% | Share of predicted delays that were delayed |
 | Recall | 61.06% | Share of actual delays detected by the model |
