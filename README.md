@@ -2,6 +2,8 @@
 
 FlightPulse is an end-to-end data science project that analyzes U.S. airline delays and predicts whether a departure will be delayed by at least 15 minutes. It combines a Python data pipeline, SQL analytics, a scikit-learn model, a Streamlit dashboard, and secure AWS infrastructure defined with Terraform.
 
+**[Launch the live FlightPulse dashboard](https://flight-delay-platform-9wvanzjxnud3fg3zubxvgh.streamlit.app/)**
+
 ## What it demonstrates
 
 - Imports real Bureau of Transportation Statistics (BTS) on-time flight records
@@ -66,7 +68,8 @@ prevents target leakage and keeps the evaluation honest.
 
 ## Deployment
 
-The public dashboard is deployed from GitHub with Streamlit Community Cloud. Because generated
+The [public dashboard](https://flight-delay-platform-9wvanzjxnud3fg3zubxvgh.streamlit.app/) is
+deployed from GitHub with Streamlit Community Cloud. Because generated
 databases and models do not belong in Git, a fresh hosted instance downloads a versioned 35 MB
 GitHub Release bundle, verifies its pinned SHA-256 checksum, and restores only the SQLite database,
 trained model, and evaluation metrics. No credentials or raw BTS releases are included. See the

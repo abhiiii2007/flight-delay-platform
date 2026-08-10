@@ -3,6 +3,8 @@
 FlightPulse is hosted on Streamlit Community Cloud. The service clones the GitHub repository,
 installs `requirements.txt`, and runs `app/dashboard.py` from the repository root.
 
+Live app: [flight-delay-platform-9wvanzjxnud3fg3zubxvgh.streamlit.app](https://flight-delay-platform-9wvanzjxnud3fg3zubxvgh.streamlit.app/)
+
 ## Why a separate artifact bundle exists
 
 The official BTS releases, generated SQLite database, and trained model are intentionally excluded

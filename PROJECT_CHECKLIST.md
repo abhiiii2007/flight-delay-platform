@@ -12,7 +12,7 @@
 - [x] Compare random forest against a logistic-regression baseline
 - [x] Add a reproducible holdout confusion matrix and class-imbalance evaluation metrics
 - [x] Add screenshots and an architecture diagram to the README
-- [ ] Deploy the dashboard or record a 60–90 second walkthrough
+- [x] Deploy the dashboard or record a 60–90 second walkthrough
 - [ ] Provision AWS resources, capture the architecture, then remove billable resources
 - [ ] Replace every resume claim with a measured, reproducible result
 - [ ] Add repository and demo links to the resume
