@@ -14,12 +14,19 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src.config import DATABASE_URL, METRICS_PATH, MODEL_PATH  # noqa: E402
+from src.deployment import ensure_runtime_artifacts  # noqa: E402
 
 st.set_page_config(page_title="FlightPulse", page_icon="✈️", layout="wide")
 st.title("FlightPulse")
 st.caption("Explore departure-delay patterns and estimate the risk of a 15+ minute delay.")
 
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+try:
+    ensure_runtime_artifacts()
+except Exception as error:
+    st.error(f"Unable to prepare dashboard data: {error}")
+    st.stop()
 
 
 def database_cache_version() -> int | None:

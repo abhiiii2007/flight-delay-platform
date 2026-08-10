@@ -13,4 +13,4 @@ data/processed/*
 .terraform/
 *.tfstate*
 terraform.tfvars
-
+dist/
