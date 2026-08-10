@@ -87,7 +87,7 @@ st.plotly_chart(
     px.bar(
         carrier, x="carrier", y="delay_rate", hover_data=["flights"], title="Delay rate by carrier"
     ),
-    use_container_width=True,
+    width="stretch",
 )
 
 hourly = filtered.groupby("scheduled_departure_hour", as_index=False)["is_delayed"].mean()
@@ -100,7 +100,7 @@ st.plotly_chart(
         markers=True,
         title="Delay rate by departure hour",
     ),
-    use_container_width=True,
+    width="stretch",
 )
 
 routes = (
@@ -111,7 +111,7 @@ routes = (
     .nlargest(10, "delay_rate")
 )
 routes["delay_rate"] *= 100
-st.dataframe(routes, use_container_width=True, hide_index=True)
+st.dataframe(routes, width="stretch", hide_index=True)
 
 st.header("Model performance")
 if METRICS_PATH.exists():
@@ -131,6 +131,34 @@ if METRICS_PATH.exists():
         f"{metrics['train_end']}; tested on {metrics['test_start']} through "
         f"{metrics['test_end']}. Results from two adjacent months do not establish "
         "performance across seasons."
+    )
+    confusion = pd.DataFrame(
+        [
+            [metrics["true_negatives"], metrics["false_positives"]],
+            [metrics["false_negatives"], metrics["true_positives"]],
+        ],
+        index=["Actually on time", "Actually delayed"],
+        columns=["Predicted on time", "Predicted delayed"],
+    )
+    st.plotly_chart(
+        px.imshow(
+            confusion,
+            text_auto=",d",
+            color_continuous_scale="Blues",
+            labels={"x": "Prediction", "y": "Actual outcome", "color": "Flights"},
+            title="Holdout confusion matrix",
+        ),
+        width="stretch",
+    )
+    e1, e2, e3 = st.columns(3)
+    e1.metric("F1 score", f"{metrics['f1_score']:.1%}")
+    e2.metric("Specificity", f"{metrics['specificity']:.1%}")
+    e3.metric("Balanced accuracy", f"{metrics['balanced_accuracy']:.1%}")
+    st.caption(
+        f"At the model's default threshold, it identified {metrics['true_positives']:,} "
+        f"of {metrics['true_positives'] + metrics['false_negatives']:,} delayed flights and "
+        f"correctly cleared {metrics['true_negatives']:,} of "
+        f"{metrics['true_negatives'] + metrics['false_positives']:,} on-time flights."
     )
 else:
     st.info("Train the model with `make train` to generate evaluation metrics.")

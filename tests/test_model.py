@@ -16,6 +16,20 @@ def test_train_returns_valid_metrics(tmp_path):
     assert metrics["selected_model"] in {"random_forest", "logistic_regression"}
     assert 0 <= metrics["random_forest_roc_auc"] <= 1
     assert 0 <= metrics["logistic_regression_roc_auc"] <= 1
+    assert 0 <= metrics["balanced_accuracy"] <= 1
+    assert 0 <= metrics["specificity"] <= 1
+    assert 0 <= metrics["f1_score"] <= 1
+    confusion_total = sum(
+        metrics[key]
+        for key in ("true_negatives", "false_positives", "false_negatives", "true_positives")
+    )
+    assert confusion_total == metrics["test_rows"]
+    assert metrics["recall"] == metrics["true_positives"] / (
+        metrics["true_positives"] + metrics["false_negatives"]
+    )
+    assert metrics["specificity"] == metrics["true_negatives"] / (
+        metrics["true_negatives"] + metrics["false_positives"]
+    )
 
 
 def test_chronological_split_keeps_future_dates_out_of_training():

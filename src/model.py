@@ -9,7 +9,15 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -92,10 +100,20 @@ def train(
     model = trained_models[selected_model]
     probabilities = candidate_probabilities[selected_model]
     predictions = model.predict(x_test)
+    true_negatives, false_positives, false_negatives, true_positives = confusion_matrix(
+        y_test, predictions, labels=[0, 1]
+    ).ravel()
     metrics = {
         "accuracy": float(accuracy_score(y_test, predictions)),
+        "balanced_accuracy": float(balanced_accuracy_score(y_test, predictions)),
         "precision": float(precision_score(y_test, predictions, zero_division=0)),
         "recall": float(recall_score(y_test, predictions, zero_division=0)),
+        "specificity": float(
+            true_negatives / (true_negatives + false_positives)
+            if true_negatives + false_positives
+            else 0
+        ),
+        "f1_score": float(f1_score(y_test, predictions, zero_division=0)),
         "roc_auc": candidate_roc_auc[selected_model],
         "random_forest_roc_auc": candidate_roc_auc["random_forest"],
         "logistic_regression_roc_auc": candidate_roc_auc["logistic_regression"],
@@ -105,6 +123,10 @@ def train(
         "rows": int(len(flights)),
         "train_rows": int(len(train_set)),
         "test_rows": int(len(test_set)),
+        "true_negatives": int(true_negatives),
+        "false_positives": int(false_positives),
+        "false_negatives": int(false_negatives),
+        "true_positives": int(true_positives),
         "split_strategy": (
             "latest_month_holdout"
             if train_set["flight_date"].max().month != test_set["flight_date"].min().month

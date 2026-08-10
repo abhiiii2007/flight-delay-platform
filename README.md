@@ -67,6 +67,10 @@ The current evaluation uses the official April and May 2026 releases from the
 - Out-of-month precision: **33.24%**
 - Out-of-month recall: **61.06%**
 
+The generated metrics artifact and dashboard also report the May holdout confusion matrix, F1,
+specificity, and balanced accuracy so the model's false-alarm versus missed-delay tradeoff remains
+visible despite the imbalanced target.
+
 The model trains on all non-cancelled April flights and tests on every non-cancelled May flight, so
 the test month never enters training. These two-month results remain a baseline and should not be
 interpreted as proof of seasonal performance. Random forest is retained because it slightly

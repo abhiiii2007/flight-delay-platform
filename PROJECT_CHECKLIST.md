@@ -10,6 +10,7 @@
 - [x] Evaluate and explain model metrics using real data
 - [x] Combine April and May releases and evaluate on an entirely later month
 - [x] Compare random forest against a logistic-regression baseline
+- [x] Add a reproducible holdout confusion matrix and class-imbalance evaluation metrics
 - [ ] Add screenshots and an architecture diagram to the README
 - [ ] Deploy the dashboard or record a 60–90 second walkthrough
 - [ ] Provision AWS resources, capture the architecture, then remove billable resources

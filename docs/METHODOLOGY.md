@@ -34,6 +34,25 @@ with the higher May ROC-AUC is saved for dashboard predictions.
 | Accuracy | 64.69% | Share of holdout predictions classified correctly |
 | Precision | 33.24% | Share of predicted delays that were delayed |
 | Recall | 61.06% | Share of actual delays detected by the model |
+| F1 | 43.05% | Harmonic mean of precision and recall |
+| Specificity | 65.70% | Share of on-time flights correctly cleared |
+| Balanced accuracy | 63.38% | Average of recall and specificity |
+
+### May 2026 confusion matrix
+
+| Actual outcome | Predicted on time | Predicted delayed | Total |
+| --- | ---: | ---: | ---: |
+| On time | 344,443 | 179,785 | 524,228 |
+| Delayed 15+ minutes | 57,093 | 89,534 | 146,627 |
+| **Total** | **401,536** | **269,319** | **670,855** |
+
+The saved evaluation artifact also includes the four confusion-matrix counts: true negatives,
+false positives, false negatives, and true positives. The dashboard visualizes those counts and
+reports F1, specificity, and balanced accuracy. These metrics are important because only 21.86% of
+May's non-cancelled flights were delayed. A classifier that always predicts "on time" would reach
+78.14% accuracy but detect no delays. FlightPulse's class-balanced model deliberately accepts more
+false alarms to recover substantially more actual delays, so ROC-AUC, recall, balanced accuracy,
+and the full confusion matrix should be considered alongside ordinary accuracy.
 
 Because only two adjacent months are represented, these results are a baseline rather than
 evidence of performance across seasons. A stronger evaluation would train on several earlier
