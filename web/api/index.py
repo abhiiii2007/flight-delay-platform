@@ -36,4 +36,7 @@ def predict(flight: Flight) -> dict[str, float | str]:
         "day_of_week": flight.day_of_week,
     }])
     probability = float(model.predict_proba(row)[0, 1])
-    return {"delay_probability": probability, "risk_label": "higher" if probability >= 0.5 else "lower"}
+    return {
+        "delay_probability": probability,
+        "risk_label": "higher" if probability >= 0.5 else "lower",
+    }
