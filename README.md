@@ -2,7 +2,14 @@
 
 FlightPulse is an end-to-end data science project that analyzes U.S. airline delays and predicts whether a departure will be delayed by at least 15 minutes. It combines a Python data pipeline, SQL analytics, a scikit-learn model, a Streamlit dashboard, and secure AWS infrastructure defined with Terraform.
 
-**[Launch the live FlightPulse dashboard](https://flight-delay-platform-9wvanzjxnud3fg3zubxvgh.streamlit.app/)**
+**[Launch the original Streamlit dashboard](https://flight-delay-platform-9wvanzjxnud3fg3zubxvgh.streamlit.app/)**
+
+**[Launch the production-style Next.js dashboard](https://flightpulse-delay.vercel.app/)**
+
+A production-style Next.js replacement is now maintained in [`web/`](web). It preserves the
+historical exploration, prediction, and model-evaluation experience while removing the need for
+a continuously running Streamlit session. The original app remains available until the new
+deployment is fully verified.
 
 ## What it demonstrates
 
@@ -39,6 +46,21 @@ canonical CSV, the pipeline loads SQLite, and the dashboard reads the database a
 artifacts. Terraform documents the later production path without requiring cloud resources for
 local reproduction.
 
+### Vercel web architecture
+
+```mermaid
+flowchart LR
+    SQLite["Local SQLite"] --> Export["Precompute aggregate JSON"]
+    Export --> Next["Next.js dashboard on Vercel"]
+    Model["Versioned scikit-learn model"] --> API["FastAPI request function on Vercel"]
+    Next -->|POST /api/predict| API
+```
+
+The browser downloads a compact read-only aggregate instead of the 160 MB SQLite database. The
+Python function loads only the 13 MB trained model and runs when a prediction is requested. This
+initial deployment targets Vercel Hobby at $0/month and uses its included `vercel.app` address;
+no custom domain or paid backend is required.
+
 ## Dashboard
 
 ### Historical analytics
@@ -74,6 +96,20 @@ databases and models do not belong in Git, a fresh hosted instance downloads a v
 GitHub Release bundle, verifies its pinned SHA-256 checksum, and restores only the SQLite database,
 trained model, and evaluation metrics. No credentials or raw BTS releases are included. See the
 [deployment guide](docs/DEPLOYMENT.md) for the complete flow and rebuild instructions.
+
+For the new interface, set the Vercel project's root directory to `web`. Vercel builds the Next.js
+frontend and discovers the FastAPI function in `web/api/index.py`. The Python dependency versions
+are pinned to the versions that created the serialized model. See
+[`docs/VERCEL_MIGRATION.md`](docs/VERCEL_MIGRATION.md) for the migration inventory and cost boundary.
+
+To run the replacement locally:
+
+```bash
+.venv/bin/python -m scripts.export_web_analytics
+cd web
+npm install
+npm run dev
+```
 
 ## Real BTS release
 
